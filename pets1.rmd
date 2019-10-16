@@ -1,0 +1,62 @@
+---
+title: "pets"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(lubridate)
+library(janitor)
+pets <- readr::read_csv("https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2019/2019-03-26/seattle_pets.csv") %>% 
+              select(-secondary_breed) %>%
+              mutate(license_issue_date = mdy(license_issue_date),
+                     year_issue_date = year(license_issue_date))
+    
+
+clean_pets <- pets %>% na.omit()
+```
+
+# Top 10 names
+
+```{r}
+top_10 <- clean_pets %>%
+    tabyl(animals_name) %>% 
+    arrange(desc(n)) %>%
+    top_n(10)
+popular_names <- top_10$animals_name
+top_10
+
+```
+
+
+# Repartition of each popular name by species
+
+```{r}
+rep_species <- clean_pets %>% 
+               filter(animals_name %in% popular_names) %>%
+               group_by(animals_name,species) %>%
+               count() %>% 
+               filter(species != 'Goat')
+```
+
+# Count by species
+
+```{r}
+ggplot(rep_species, aes(x= reorder(animals_name, -n), y=n, fill=animals_name)) +   geom_col() + 
+  facet_wrap(~species) + 
+  coord_flip() + 
+  theme_bw()
+```
+
+# Repartition by popular name and species
+
+```{r}
+
+ggplot(rep_species,aes(x= reorder(animals_name, n), y = n, fill=species)) + 
+  geom_col(position= "fill")+ 
+  coord_flip() + 
+  theme_bw() + 
+  labs(x='Name',y='count')
+
+ggsave('popular_names_cat_dog.png')
+```
