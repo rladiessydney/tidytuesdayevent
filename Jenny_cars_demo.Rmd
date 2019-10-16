@@ -1,0 +1,69 @@
+---
+title: "Tidy Tuesday with RLadies! "
+output: html_document
+---
+
+- load in libraries <br>
+- read in data from github
+```{r message=FALSE, warning=FALSE}
+library(tidyverse)
+library(dplyr)
+cars <- readr::read_csv("https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2019/2019-10-15/big_epa_cars.csv")
+
+#View(cars)
+```
+
+- use plyr package to rename variables (make sure to detach package if you're going to use dplyr in following analyses)
+```{r message=FALSE}
+library(plyr)
+cars <- rename(cars, c("city08" = "mpg_city"))
+cars <- rename(cars, c("highway08" = "mpg_highway"))
+detach(package:plyr)
+```
+
+- select variables of interest <br>
+- plot a histogram of mpg_highway to get a better sense of the data <br>
+- a few points around 100 so take a closer look at those...can see it's a lot of electric cars
+```{r message=FALSE, warning=FALSE}
+cars <- cars %>%
+  select(mpg_city, mpg_highway, model, make, drive, youSaveSpend) %>%
+  na.omit()
+
+cars
+
+ggplot(cars, aes(mpg_highway)) +
+  geom_histogram()
+
+cars %>%
+  filter(mpg_highway > 75)
+```
+
+- group data by type of car (drive) and look at summary statistics of mpg_highway and youSaveSpend <br>
+- building on to the histogram we looked at previously, we now divide it (facet_wrap) by drive and make it pretty!
+```{r fig.height=10, fig.width = 15, fig.align='center', message=FALSE}
+cars %>%
+  group_by(drive) %>%
+  summarise(mean_mpg_highway = mean(mpg_highway),
+            mean_save = mean(youSaveSpend))
+
+ggplot(cars, aes(mpg_highway, fill = drive)) +
+  geom_histogram() +
+  facet_wrap(~drive) +
+  theme_bw() +
+  labs(x = "Miles per Gallon on Highway") +
+  theme(legend.position = "none",
+        text = element_text(size = 20)) 
+```
+
+- creating a boxplot of how much people save dependent on the type of car  <br>
+- note the reorder() that organises the boxplots in order of the youSaveSpend variable
+```{r fig.height=10, fig.width = 15, fig.align='center'}
+ggplot(cars, aes(x = reorder(drive, youSaveSpend), y = youSaveSpend, fill = drive)) +
+  geom_boxplot() +
+  theme_bw() +
+  coord_flip() +
+  labs(x = "Type of Cars", y = "Savings/Spendings") +
+  theme(legend.position = "none",
+        text = element_text(size = 20)) 
+```
+

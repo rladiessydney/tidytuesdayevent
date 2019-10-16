@@ -1,0 +1,59 @@
+---
+title: "Tidy Tuesday - Pet Names Dataset!"
+output: html_document
+---
+
+## Question of interest: What are the trends in different pets over time? 
+- load in libraries <br> 
+- read in data from github <br>
+- we quickly found that most of the data is from 2018 and for cats and dogs <br>
+```{r message=FALSE, warning=FALSE}
+library(tidyverse)
+library(dplyr)
+library(lubridate)
+library(RColorBrewer)
+
+pets <- readr::read_csv("https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2019/2019-03-26/seattle_pets.csv")
+```
+
+## Updated question of interest: What are the trends in cats and dogs in 2018? 
+- using the lubridate(), we created separate variables for just the year and month <br>
+- we filtered the data to only include 2018 and cats and dogs <br>
+- then we counted the total number for each species in each month and ordered the data by month
+```{r}
+long_date <- mdy(pets$license_issue_date)
+year <- year(long_date)
+month <- month(long_date)
+
+pets$year <- year
+pets$month <- month.abb[month]
+pets$month_order <- month
+
+pet_month <- pets %>%
+  filter(year == 2018) %>%
+  select(license_issue_date, species, primary_breed, year, month, month_order) %>%
+  filter(species == "Dog" | species == "Cat") %>%
+  group_by(month, month_order, species) %>%
+  count() %>%
+  arrange(month_order)
+
+pet_month
+```
+
+- creating the visualisation! <br>
+- we have month on the x axis and n (number of animals) on the y axis (but note that we flipped the axes using coord_flip) <br>
+- we split the data by species using facet_wrap() <br>
+- we reordered the months using reorder()
+- finally we changed the aesthetics to make it pretty!
+```{r fig.height=10, fig.width = 15, fig.align='center'}
+ggplot(pet_month, aes(x = reorder(month, -month_order), n, fill=month)) +
+  geom_col() +
+  facet_wrap(~species) +
+  scale_fill_brewer(palette = "Set3") +
+  coord_flip() +
+  labs(y = "Popularity", x = "Month", title="Popularity by Species in 2018") +
+  theme_minimal() +
+  theme(text = element_text(size=20),
+        legend.position = "none")
+```
+
