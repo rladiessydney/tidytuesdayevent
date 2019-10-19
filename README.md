@@ -7,14 +7,16 @@ We then broke into 3 group and each group tackled the dataset from March 2019 ab
 
 Here is the code from each group. 
 
-[Group 1](/pets1.Rmd)
+[Group 1](/pets1.Rmd) looked at whether the popular names were largely cats or dogs
 
 ![](/popular_names_cat_dog.png)
 
-[Group 2](/pets2.Rmd)
+[Group 2](/pets2.Rmd) looked at differences in cat vs. dog registrations by month. 
 
 ![](/popularity.png)
 
-[Group 3](/pets3.Rmd)
+[Group 3](/pets3.Rmd) looked at the distribution of names by first letter
+
+![](/firstLetterDistri.png)
 
 

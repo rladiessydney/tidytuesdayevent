@@ -1,0 +1,61 @@
+---
+title: "First Letters in Pet Names"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r loadLib, echo=TRUE, result="hide", warning=FALSE, message=FALSE}
+library(tidyverse)
+library(dplyr)
+
+# Read and display data
+seattle_pets <- readr::read_csv(paste0("https://raw.githubusercontent.com/",
+                "rfordatascience/tidytuesday/master/data/",
+                "2019/2019-03-26/seattle_pets.csv"))
+
+# Dataset variables
+colnames(seattle_pets)
+
+head(seattle_pets[, 1:length(seattle_pets)])
+```
+
+Add a column to data table corresponding to (capitalized) first letter in names, drop any NULL values, and drop names which occur fewer than 3 times (this gets rid of all names not beginning with a letter of the alphabet):
+```{r}
+seattle_pets <- seattle_pets %>% 
+  mutate(first_letter = str_sub(animals_name, start = 1, end = 1) %>% 
+           toupper())
+
+pets_grouped <- seattle_pets %>% 
+  group_by(first_letter, species) %>% 
+  count()
+
+pets_grouped <- pets_grouped %>% 
+  filter(n > 2 & !is.na(first_letter))
+
+head(pets_grouped)
+```
+
+### Plot distribution of first letter in names
+```{r, message=FALSE}
+pets_grouped_plot <- pets_grouped %>% 
+  ggplot(aes(reorder(first_letter, -n, FUN = sum), n, fill = species)) +
+  geom_col() + 
+  labs(x = "First Letter in Name", y = "Count") + 
+  ggtitle("First Letter Distribution in Pet Names")
+
+print(pets_grouped_plot)
+ggsave("firstLetterDistr.png")
+```
+
+Looking at each species separately with fancy facet plots:
+```{r, message=FALSE}
+pets_grouped_plot +
+  facet_wrap(~pets_grouped$species, scales = "free")
+ggsave("firstLetterFacets.png")
+```
